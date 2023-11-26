@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Les Petits Plats</title>
+  <link rel="stylesheet" href="assets/styles/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Serif:opsz@8..144&family=Roboto+Slab:wght@300&family=Roboto:wght@100;300;400;500;700;900&family=Shrikhand&display=swap"
+    rel="stylesheet">
+  <script src="assets/scripts/recipe.js" defer></script>
+  <script src="assets/scripts/search.js" defer></script>
+</head>
+
+<body>
+  <header>
+    <h1>LES PETITS PLATS</h1>
+    <h2>Cherchez parmi plus de 1500 recettes du quotidien, simples, et délicieuses</h2>
+    <label for="search"></label>
+    <input type="search" id="search" name="search" minlength="4" />
+    <div class="filter"></div>
+  </header>
+  <main>
+    <div class="dropdown" id="dropdownIngredients">
+      <div class="dropdown-header">Ingrédients</div>
+      <div class="dropdown-content">
+        <input type="text" class="dropdown-search" placeholder="Rechercher des ingrédients...">
+      </div>
+    </div>
+
+    <div class="dropdown" id="dropdownDevices">
+      <div class="dropdown-header">Appareils</div>
+      <div class="dropdown-content">
+        <input type="text" class="dropdown-search" placeholder="Rechercher des appareils...">
+      </div>
+    </div>
+
+    <div class="dropdown" id="dropdownTools">
+      <div class="dropdown-header">Ustensiles</div>
+      <div class="dropdown-content">
+        <input type="text" class="dropdown-search" placeholder="Rechercher des ustensiles...">
+      </div>
+    </div>
+    <div id="result"></div>
+  </main>
+</body>
+
+</html>
