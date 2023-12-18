@@ -11,6 +11,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Serif:opsz@8..144&family=Roboto+Slab:wght@300&family=Roboto:wght@100;300;400;500;700;900&family=Shrikhand&display=swap"
     rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
   <script src="assets/scripts/recipe.js" defer></script>
   <script src="assets/scripts/search.js" defer></script>
 </head>
@@ -19,29 +20,38 @@
   <header>
     <h1>LES PETITS PLATS</h1>
     <h2>Cherchez parmi plus de 1500 recettes du quotidien, simples, et délicieuses</h2>
+    <div class="search-box">
     <label for="search"></label>
-    <input type="search" id="search" name="search" minlength="4" />
+      <input type="search" id="search" name="search" minlength="4"
+        placeholder="Rechercher une recette, un ingrédient, ..." />
+      <i class="fa-solid fa-magnifying-glass magnifying-glass"></i>
+    </div>
     <div class="filter"></div>
   </header>
   <main>
-    <div class="dropdown" id="dropdownIngredients">
-      <div class="dropdown-header">Ingrédients</div>
-      <div class="dropdown-content">
-        <input type="text" class="dropdown-search" placeholder="Rechercher des ingrédients...">
+    <div class="dropdown-holder">
+      <div class="dropdown" id="dropdownIngredients">
+        <div class="dropdown-header">Ingrédients <i class="fa-solid fa-chevron-down"></i></div>
+        <div class="dropdown-content">
+          <input type="text" class="dropdown-search" placeholder="Rechercher des ingrédients...">
+          <div class="dropdown-filter">plus..</div>
+        </div>
       </div>
-    </div>
 
-    <div class="dropdown" id="dropdownDevices">
-      <div class="dropdown-header">Appareils</div>
-      <div class="dropdown-content">
-        <input type="text" class="dropdown-search" placeholder="Rechercher des appareils...">
+      <div class="dropdown" id="dropdownDevices">
+        <div class="dropdown-header">Appareils <i class="fa-solid fa-chevron-down"></i></div>
+        <div class="dropdown-content">
+          <input type="text" class="dropdown-search" placeholder="Rechercher des appareils...">
+          <div class="dropdown-filter">plus..</div>
+        </div>
       </div>
-    </div>
 
-    <div class="dropdown" id="dropdownTools">
-      <div class="dropdown-header">Ustensiles</div>
-      <div class="dropdown-content">
-        <input type="text" class="dropdown-search" placeholder="Rechercher des ustensiles...">
+      <div class="dropdown" id="dropdownTools">
+        <div class="dropdown-header">Ustensiles <i class="fa-solid fa-chevron-down"></i></div>
+        <div class="dropdown-content">
+          <input type="text" class="dropdown-search" placeholder="Rechercher des ustensiles...">
+          <div class="dropdown-filter">plus..</div>
+        </div>
       </div>
     </div>
     <div id="result"></div>

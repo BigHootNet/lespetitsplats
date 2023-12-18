@@ -5,7 +5,7 @@ const htmlResult = document.getElementById("result");
 class HtmlGenerator {
 
     constructor(arg) {
-        this.arg = arg
+        this.arg = arg;
     }
 
     htmlH3() {
@@ -28,6 +28,12 @@ class HtmlGenerator {
         p.innerHTML = this.arg;
         return p;
     }
+
+    htmlNotif() {
+        let div = document.createElement("div");
+        div.innerHTML = this.arg;
+        return div;
+    }
 }
 
 function Recipe(id, image, name, servings, ingredients, time, description, appliance, ustensils) {
@@ -49,15 +55,16 @@ function Recipe(id, image, name, servings, ingredients, time, description, appli
         let html_title = new HtmlGenerator(this.name).htmlH3(),
             html_recette_title = new HtmlGenerator("recette").htmlH4(),
             html_recette_p = new HtmlGenerator(this.description).htmlP(),
-            html_ingredients_title = new HtmlGenerator("ingredients").htmlH4();
+            html_ingredients_title = new HtmlGenerator("ingredients").htmlH4(),
+            html_time_notification = new HtmlGenerator(this.time + "min").htmlNotif();
 
         let ingredient_list = [],
-            ingredient_quantity_list = [];
-        ingredient_quantity_raw = [];
+            ingredient_quantity_list = [],
+            ingredient_quantity_raw = [];
 
         this.ingredients.forEach(function (e) {
             let html_ingredients_title = new HtmlGenerator(e.ingredient).htmlH4(),
-                html_ingredients_quantity = new HtmlGenerator(e.quantity).htmlH4();
+                html_ingredients_quantity = new HtmlGenerator(e.quantity).htmlH5();
 
             ingredient_list.push(html_ingredients_title);
             ingredient_quantity_raw.push(e.quantity)
@@ -70,6 +77,8 @@ function Recipe(id, image, name, servings, ingredients, time, description, appli
             quantity_number = {};
             quantity_number = ingredient_quantity_list[index];
 
+            html_time_notification.classList.add('notification')
+            htmlDiv.classList.add('informations')
             htmlDiv.appendChild(e);
             if (quantity_number.textContent !== "undefined") {
                 htmlDiv.appendChild(quantity_number);
@@ -79,7 +88,7 @@ function Recipe(id, image, name, servings, ingredients, time, description, appli
         html_Image.src = "assets/photos/" + this.image
 
         htmlArticle.append(html_Image, html_title, html_recette_title,
-            html_recette_p, html_ingredients_title, htmlDiv);
+            html_recette_p, html_ingredients_title, htmlDiv, html_time_notification);
 
         return htmlArticle;
     }
@@ -133,17 +142,54 @@ function getWordsFromRecipe(recipe) {
 }
 
 
-// Search function
-function search(query, index, recipes) {
-    if (query.length < 3) return [];
+// Fonction pour calculer la distance de Levenshtein
+function levenshtein(a, b) {
+    const matrix = [];
 
-    const queryLower = query.toLowerCase();
-    const resultSet = new Set();
+    for (let i = 0; i <= b.length; i++) {
+        matrix[i] = [i];
+    }
 
-    Object.keys(index).forEach(word => {
-        if (word.startsWith(queryLower)) {
-            index[word].forEach(id => resultSet.add(id));
+    for (let i = 0; i <= a.length; i++) {
+        matrix[0][i] = i;
+    }
+
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
+            }
         }
+    }
+
+    return matrix[b.length][a.length];
+}
+
+// Fonction de recherche
+function search(query, index, recipes) {
+    if (query.length < 3) {
+        return recipes; //
+    }
+
+    const queryWords = query.toLowerCase().split(/\s+/);
+    const resultSet = new Set(recipes.map(recipe => recipe.id));
+    const tolerance = 1; // Seuil de tolérance pour les fautes
+
+    queryWords.forEach(word => {
+        const tempSet = new Set();
+        Object.keys(index).forEach(indexWord => {
+            if (levenshtein(indexWord, word) <= tolerance) {
+                index[indexWord].forEach(id => tempSet.add(id));
+            }
+        });
+
+        resultSet.forEach(id => {
+            if (!tempSet.has(id)) {
+                resultSet.delete(id);
+            }
+        });
     });
 
     return Array.from(resultSet).map(id => recipes.find(recipe => recipe.id === id));
@@ -188,8 +234,7 @@ function getSelectedDropdownOptions() {
         const category = dropdown.parentElement.id.split('dropdown')[1].toLowerCase();
         dropdown.querySelectorAll('.dropdown-option').forEach(option => {
             if (option.getElementsByTagName("input")[0].checked) {
-                console.log(selectedOptions[category])
-                selectedOptions[category].add(option.getElementsByTagName("span")[0].textContent.toLowerCase()); 
+                selectedOptions[category].add(option.getElementsByTagName("span")[0].textContent.toLowerCase());
             }
         });
     });
@@ -198,7 +243,8 @@ function getSelectedDropdownOptions() {
 }
 
 // Fonction pour filtrer les résultats en fonction des options sélectionnées et de la recherche
-function filterResults(results, selectedOptions, searchQuery) {
+// L'algo quoi...
+/* function filterResults(results, selectedOptions, searchQuery) {
     return results.filter(recipeData => {
         const hasSelectedIngredients = selectedOptions.ingredients.size === 0 ||
             recipeData.ingredients.some(ingredient => selectedOptions.ingredients.has(ingredient.ingredient.toLowerCase()));
@@ -209,18 +255,69 @@ function filterResults(results, selectedOptions, searchQuery) {
         const hasSelectedUstensils = selectedOptions.tools.size === 0 ||
             recipeData.ustensils.some(ustensil => selectedOptions.tools.has(ustensil.toLowerCase()));
 
-        const searchQueryDefined = searchQuery || ''; // Défaut à une chaîne vide si searchQuery est indéfini
+        const searchQueryDefined = searchQuery || ''; 
         const matchesSearchQuery = searchQueryDefined.length === 0 ||
             recipeData.name.toLowerCase().includes(searchQueryDefined.toLowerCase()) ||
             recipeData.description.toLowerCase().includes(searchQueryDefined.toLowerCase());
 
         return hasSelectedIngredients && hasSelectedAppliance && hasSelectedUstensils && matchesSearchQuery;
     });
+}*/
+
+function filterResults(results, selectedOptions, searchQuery) {
+    const filteredResults = [];
+    const searchQueryLower = (searchQuery || '').toLowerCase();
+
+    // Boucle 'for' pour parcourir chaque recette
+    for (let i = 0; i < results.length; i++) {
+        const recipeData = results[i];
+
+        // Vérification des ingrédients sélectionnés
+        let hasSelectedIngredients = selectedOptions.ingredients.size === 0;
+        if (!hasSelectedIngredients) {
+            for (let j = 0; j < recipeData.ingredients.length; j++) {
+                if (selectedOptions.ingredients.has(recipeData.ingredients[j].ingredient.toLowerCase())) {
+                    hasSelectedIngredients = true;
+                    break; // Sort de la boucle une fois un ingrédient correspondant trouvé
+                }
+            }
+        }
+
+        // Vérification de l'appareil sélectionné
+        const hasSelectedAppliance = selectedOptions.devices.size === 0 ||
+            selectedOptions.devices.has(recipeData.appliance.toLowerCase());
+
+        // Vérification des ustensiles sélectionnés
+        let hasSelectedUstensils = selectedOptions.tools.size === 0;
+        if (!hasSelectedUstensils) {
+            let k = 0;
+            while (k < recipeData.ustensils.length) {
+                if (selectedOptions.tools.has(recipeData.ustensils[k].toLowerCase())) {
+                    hasSelectedUstensils = true;
+                    break; // Sort de la boucle une fois un ustensile correspondant trouvé
+                }
+                k++;
+            }
+        }
+
+        // Vérification de la correspondance avec la requête de recherche
+        let matchesSearchQuery = searchQueryLower.length === 0 ||
+            recipeData.name.toLowerCase().includes(searchQueryLower) ||
+            recipeData.description.toLowerCase().includes(searchQueryLower);
+
+        // Si tous les critères sont remplis, ajoute la recette aux résultats filtrés
+        if (hasSelectedIngredients && hasSelectedAppliance && hasSelectedUstensils && matchesSearchQuery) {
+            filteredResults.push(recipeData);
+        }
+    }
+
+    return filteredResults;
 }
 
 
 
 /////////////////////////////////////////////////////// FILTERS
+
 
 // création des listes
 function createDropdownLists(recipes) {
@@ -248,7 +345,7 @@ function createDropdownLists(recipes) {
 // gestion du dropdown custom
 const dropdownData = createDropdownLists(recipes);
 document.querySelectorAll('.dropdown-header').forEach(header => {
-    header.addEventListener('click', function() {
+    header.addEventListener('click', function () {
         // Fermer tous les dropdowns
         document.querySelectorAll('.dropdown-content').forEach(dropdown => {
             dropdown.style.display = "none";
@@ -317,7 +414,6 @@ document.querySelectorAll('.dropdown-content').forEach(dropdown => {
             const selectedOptions = getSelectedDropdownOptions();
             const searchValue = document.getElementById('search').value.toLowerCase();
             const searchResults = search(searchValue, index, recipes);
-            console.log(searchValue);
             const filteredResults = filterResults(searchResults, selectedOptions);
             updateUIWithResults(filteredResults);
         }
@@ -326,7 +422,6 @@ document.querySelectorAll('.dropdown-content').forEach(dropdown => {
 
 // Fermer dropdown
 window.onclick = function (event) {
-    // Si le clic n'est pas sur un dropdown-search et pas sur un dropdown-header
     if (!event.target.matches('.dropdown-search') && !event.target.matches('.dropdown-header')) {
         document.querySelectorAll('.dropdown-content').forEach(dropdown => {
             dropdown.style.display = "none";
